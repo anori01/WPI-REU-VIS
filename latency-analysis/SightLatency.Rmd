@@ -1,0 +1,81 @@
+---
+title: "Sight Latency Test"
+author: "Cole Polychronis"
+date: "7/22/2017"
+output: 
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(plyr)
+library(dplyr)
+```
+
+## Initialization of data frames
+
+Currently, the folder variable is set to be the path to the csvHolder file in my downloads section. It needs to be set to yours when you use this.
+
+```{r init}
+# folder variable should be changed to be the path to the csvHolder file
+folder <- "csvHolder/"
+latencyFiles <- list.files(path=paste(folder, "latency", sep='/'), pattern="*.csv")
+latency <- lapply(latencyFiles, function(file){ read.csv( paste(folder, "latency", file, sep='/'), header = FALSE)} )
+eventsFiles <- list.files(path=paste(folder, "events", sep='/'), pattern="*.csv")
+events <- lapply(eventsFiles, function(file){ read.csv(paste(folder, "events", file, sep='/'), header = FALSE)} )
+```
+
+## Distribution of User Interactions
+```{r distrib}
+events_df <- vector()
+for(i in 1: length(events)){
+  events_df <- c(events_df, nrow(as.data.frame(events[i])))
+}
+events_df <- data.frame(events_df)
+```
+
+```{r distribplot}
+ggplot(events_df, aes(events_df)) + 
+  geom_histogram(binwidth = 5000) + 
+  labs(x="Number of Events", y="Frequency", title="Distribution of Number of User Interactions") +
+  theme_bw()
+```
+
+## Cumulative Distribution Charts
+```{r cdf}
+aggregate_latencies <- ldply(latency, data.frame)
+```
+```{r cdfplot}
+ggplot(aggregate_latencies, aes(x=V2)) + stat_ecdf(aes(color=V3)) + 
+  labs(x="Latency (ms)", y="Percent of Interactions", color="Tracking", title="Cumulative Distribution of Interaction Latency") + 
+  scale_y_continuous(labels=scales::percent) + coord_cartesian(xlim=c(0, 30)) +
+  theme_bw()
+```
+
+## Stacked Barchart of Interactions
+
+In order to cut down on the number of elements in the first legend, I just didn't label the events never experienced latency over 500 ms. For the second legend, I had it ignore (and not label) events that made up less than 0.1% of the total number of events. 
+
+```{r stacked}
+above <- aggregate_latencies[aggregate_latencies$V2 >= 500,]
+above <- data.frame(table(above$V1))
+above <- above[above$Freq != 0,]
+
+all <- prop.table(table(aggregate_latencies$V1))
+all <- data.frame(all)
+all <- all[all$Freq > 0.001,]
+```
+```{r stackedplot}
+ggplot(above, aes(x="", y=Freq/sum(Freq), fill=Var1)) + geom_bar(width = 1, stat = "identity") +
+  labs(x="", y="Percentage of Interactions", fill="Legend") + 
+  scale_y_continuous(labels=scales::percent) + 
+  theme_bw()
+
+ggplot(all, aes(x="", y=Freq/sum(Freq), fill=Var1)) + geom_bar(width = 1, stat = "identity") +
+  labs(x="", y="Percentage of Interactions", fill="Legend") + 
+  scale_y_continuous(labels=scales::percent) +
+  theme_bw()
+```
+

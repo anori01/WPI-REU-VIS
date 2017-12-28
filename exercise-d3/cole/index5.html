@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>D3 Test 5</title>
+        <script type="text/javascript" src="http://d3js.org/d3.v3.js"></script>
+        <style type="text/css"> </style>
+    </head>
+    <body>
+        <script type="text/javascript">
+        var numbers = [1, 2, 3, 4 ,5 ,6, 'test']; // <- arrays can store multiple variable types
+            for (var i = 0; i < numbers.length; i++) {
+                console.log(numbers[i]);  //Print value to console
+            }
+
+        var fruit = {
+            kind: "Banana",
+            color: "yellow",
+            quantity: 1,
+            tasty: true
+        };
+
+        var fruitID = [fruit.kind, fruit.color, fruit.quantity, fruit.tasty]
+        fruit.kind      //Returns "grape"
+        fruit.color     //Returns "red"
+        fruit.quantity  //Returns 12
+        fruit.tasty     //Returns true
+
+        d3.select("body")
+                .selectAll("p")
+                .data(fruitID)
+                .enter()
+                .append("p")
+                .text(function(d) {return "Fruit Info: " + d;})
+                .style("color", "Blue");
+        </script>
+
+        <script type="text/javascript">
+            var geodata = {
+                "type": "FeatureCollection",
+                "features": [
+                    {
+                        "type": "Feature",
+                        "geometry": {
+                            "type": "Point",
+                            "coordinates": [ 150.1282427, -24.471803 ]
+                        },
+                        "properties": {
+                            "type": "town"
+                        }
+                    }
+                ]
+            };
+
+        </script>
+    </body>
+</html> 

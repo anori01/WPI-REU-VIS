@@ -1,0 +1,167 @@
+---
+title: "Sight Latency Test Analysis Followup"
+author: "lane"
+date: "24-Jul-2017"
+output:
+  html_document:
+    toc: true
+    toc_depth: 2
+  html_notebook: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+#library(ggplot2)
+#library(plyr)
+#library(dplyr)
+library(tidyverse)
+```
+
+Note: this borrows from Cole's original analysis.
+
+## Initialization of data frames
+
+Currently, the folder variable is set to be the path to the csvHolder file in my downloads section. It needs to be set to yours when you use this.
+
+```{r init}
+# folder variable should be changed to be the path to the csvHolder file
+folder <- "csvHolder/"
+
+latencyFiles <- list.files(path=paste(folder, "latency", sep='/'), pattern="*.csv")
+#latency <- lapply(latencyFiles, function(file){ read.csv( paste(folder, "latency", file, sep='/'), header = FALSE)} )
+latencyFiles <- sapply(latencyFiles, function(file) { paste(folder, "latency", file, sep='/') } )
+latency <- tibble()
+latency <- do.call(rbind,lapply(latencyFiles, function(f) { read.csv(f, header=FALSE) }))
+
+# Events Setup
+eventsFiles <- list.files(path=paste(folder, "events", sep='/'), pattern="*.csv")
+events <- tibble()
+eventsFiles <- sapply(eventsFiles, function(file) { paste(folder, "events", file, sep='/') } )
+events <- do.call(rbind,lapply(eventsFiles, function(f) { read.csv(f, header=FALSE) }))
+
+# add events columns
+colnames(events) <- c('event_type', 'date', 'time_stamp', 'x_position', 'y_position', 'target_element', 'target_ID', 'key_pressed', 'collection_type')
+colnames(latency) <- c('event_type', 'latency_ms', 'instrumentation')
+
+# convert row names to columns
+events <- rownames_to_column(events, "sourcefile")
+latency <- rownames_to_column(latency, "sourcefile")
+
+# add dataset based on filename
+events <- events %>%
+ tidyr::extract(
+    sourcefile, c("dataset"), "(255|exo)", 
+    remove = FALSE
+  ) 
+latency <- latency %>%
+ tidyr::extract(
+    sourcefile, c("dataset"), "(255|exo)", 
+    remove = FALSE
+  ) 
+
+# add user based on filename
+events <- events %>%
+   tidyr::extract(
+    sourcefile, c("user"), "(255-0|255-1|255-2|255-3|exo-0|exo-1|exo-2|exo-3)", 
+    remove = FALSE
+  )
+latency <- latency %>%
+   tidyr::extract(
+    sourcefile, c("user"), "(255-0|255-1|255-2|255-3|exo-0|exo-1|exo-2|exo-3)", 
+    remove = FALSE
+  )
+
+```
+
+## Distribution of User Interactions
+
+```{r distribplot, fig.width=6, fig.asp=0.618}
+
+events %>% 
+  group_by(dataset, user) %>% 
+  summarise(count=n()) %>% 
+  arrange(dataset, count) %>% 
+  ggplot( aes(x=dataset, y=count, group=reorder(user, -count)) ) +
+    geom_col(position=position_dodge(width=0.8), width=0.7) +
+    labs(
+      x="Visualization Condition (1 bar / participant)", 
+      y="Interaction Count", 
+      title="Distribution of Interactions, Per Participant"
+      ) +
+    theme_bw()
+    
+```
+
+## Cumulative Distribution Charts
+```{r cdfplot, fig.width=6, fig.asp=0.618}
+
+latency %>% 
+  ggplot() +
+    stat_ecdf(aes(x=latency_ms, colour=instrumentation)) +
+    scale_y_continuous(labels=scales::percent) + 
+    coord_cartesian(xlim=c(0, 50)) +
+    labs(
+      x="Latency (ms)", 
+      y="Percent of Interactions", 
+      color="Tracking", 
+      title="Cumulative Distribution of Interaction Latency"
+    ) +
+    theme_bw()
+
+```
+
+## Stacked Plots
+
+First, we do the originals
+
+```{r stackedplot, fig.width=6, fig.asp=0.618}
+
+latency %>% 
+  filter(latency_ms < 500) %>% 
+  ggplot(aes(x=latency_ms, fill=event_type)) +
+    geom_histogram(binwidth=50, position="fill") +
+    facet_grid(. ~ instrumentation) +
+    theme_bw()
+
+latency %>% 
+  filter(latency_ms >= 500) %>% 
+  ggplot(aes(x=latency_ms, fill=event_type)) +
+    geom_histogram(binwidth=500, position="fill") +
+    facet_grid(. ~ instrumentation) + 
+    theme_bw()
+```
+Next, we roll interactions up by type to address the overcrowded color problem
+```{r}
+
+latency$event_category <- latency$event_type
+latency$event_category <- stringr::str_replace(latency$event_category,"transition.*","animation")
+latency$event_category <- stringr::str_replace(latency$event_category,"key.*","key")
+latency$event_category <- stringr::str_replace(latency$event_category,"drag.*","drag")
+latency$event_category <- stringr::str_replace(latency$event_category,"mouse.*","mouse")
+latency$event_category <- stringr::str_replace(latency$event_category,".*click.*","mouse")
+latency$event_category <- stringr::str_replace(latency$event_category,"scroll","mouse")
+latency$event_category <- stringr::str_replace(latency$event_category,"blur|devicelight|focus|load|pageshow|resize","device")
+
+
+latency %>% 
+  filter(latency_ms < 500) %>% 
+  ggplot(aes(x=latency_ms, fill=event_category)) +
+    geom_histogram(binwidth=100, position="fill") +
+    facet_grid(. ~ instrumentation)
+
+# facet on type
+latency %>% 
+  filter(latency_ms > 100) %>% 
+  ggplot(aes(x=latency_ms)) +
+    geom_histogram(binwidth=50) +
+    facet_grid(event_category ~ instrumentation, scales = "free")
+
+latency %>% 
+  filter(latency_ms >= 500) %>% 
+  ggplot(aes(x=latency_ms, fill=event_category)) +
+    geom_histogram(binwidth=500, position="fill") +
+    facet_grid(. ~ instrumentation)
+
+```
+
