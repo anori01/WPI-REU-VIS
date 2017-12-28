@@ -1,0 +1,34 @@
+[request]
+GET /nope.php?remove=AntiAdblockKiller&x=/aadb/script.js HTTP/1.0
+X-Forwarded-For: 130.215.20.172
+Cache-Control: max-age=0
+Cookie: __utma=55577393.1485126231.1496946535.1497032034.1497032034.6; __utmz=55577393.1496955284.3.3.utmcsr=yahoo|utmccn=(organic)|utmcmd=organic|utmctr=(not%20provided); __utmc=55577393; __utmb=55577393.10.9.1497034871618
+Host: koalastothemax.com
+Accept: */*
+User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:53.0) Gecko/20100101 Firefox/53.0
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: identity
+X-UsaProxy: client
+Connection: close
+Referer: http://koalastothemax.com/
+
+[response]
+HTTP/1.1 200 OK
+Cache-Control: no-cache, must-revalidate
+Server: nginx/1.12.0
+Date: Fri, 09 Jun 2017 19:09:04 GMT
+Vary: Accept-Encoding
+Expires: Sun, 23 August 2005 20:05:17 GMT
+Content-Type: text/html
+Via: autoreg-112672.dyn.wpi.edu (UsaProxy/2.0)
+Connection: close
+
+
+try {
+  if (window.kttmAdTypes && window.kttmAdTypes.length) {
+    window.kttmAdTypes = window.kttmAdTypes.filter(function(a) {
+      return a !== 'AntiAdblockKiller';
+    });
+  }
+} catch (e) {}
+

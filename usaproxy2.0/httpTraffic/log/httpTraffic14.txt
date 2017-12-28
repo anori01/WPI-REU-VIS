@@ -1,0 +1,15 @@
+[request]
+GET /polyfill/FileSaver.js?1.9.5 HTTP/1.0
+X-Forwarded-For: 130.215.20.172
+Cache-Control: max-age=0
+Cookie: __utma=55577393.1485126231.1496946535.1497032034.1497032034.6; __utmz=55577393.1496955284.3.3.utmcsr=yahoo|utmccn=(organic)|utmcmd=organic|utmctr=(not%20provided); __utmc=55577393; __utmb=55577393.10.9.1497034871618
+If-Modified-Since: Fri, 27 Sep 2013 06:22:00 GMT
+Host: koalastothemax.com
+Accept: */*
+User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:53.0) Gecko/20100101 Firefox/53.0
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: identity
+X-UsaProxy: client
+Connection: close
+Referer: http://koalastothemax.com/
+

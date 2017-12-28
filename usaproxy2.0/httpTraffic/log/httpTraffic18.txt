@@ -1,0 +1,9 @@
+[request]
+CONNECT /img/koalas2.jpg HTTP/1.0
+User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:53.0) Gecko/20100101 Firefox/53.0
+Accept-Encoding: identity
+X-Forwarded-For: 130.215.20.172
+Host: www.google-analytics.com:443
+X-UsaProxy: client
+Connection: close
+

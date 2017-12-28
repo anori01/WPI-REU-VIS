@@ -1,0 +1,82 @@
+---
+title: "Sight.js Dashboard"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: rows
+    vertical_layout: fill
+    theme: readable
+runtime: shiny
+---
+
+```{r setup, include=TRUE}
+library(flexdashboard)
+library(tidyverse)
+library(shiny)
+library(ggplot2)
+library(purrr)
+```
+
+```{r global, include=TRUE}
+data <- readr::read_csv("testdata.csv", col_names=FALSE)
+events <- as.factor(data$X1)
+events_df <- as.data.frame(data)
+events_df$X1 <- as.factor(events_df$X1)
+```
+
+Inputs {.sidebar}
+-----------------------------------------------------------------------
+```{r}
+events_line <- as.list(levels(events))
+checkboxGroupInput("rd",
+                   label="Select Events to Track:",
+                   choiceNames=events_line,
+                   choiceValues=events_line,
+                   selected=map(events_line,1)[1:3])
+```
+
+
+Row
+-----------------------------------------------------------------------
+
+### Recorded User Interaction
+
+```{r}
+renderPlot({
+  ggplot(events_df[events_df$X1 %in% input$rd, ], aes(x=events_df$X1[events_df$X1 %in% input$rd])) + geom_bar() + theme(axis.text.x=element_text(angle=60, hjust=1)) + labs(x="", y="Frequency")
+})
+
+```
+
+Row
+-----------------------------------------------------------------------
+
+```{r}
+# Reactive that returns the whole dataset if there is no brush
+selectedData <- reactive({
+   data <- brushedPoints(events_df, input$plot1_brush)
+   if (nrow(data) == 0){
+     data <- events_df     
+   }
+   data
+})
+```
+
+### 
+
+```{r}
+plotOutput("plot1", brush = brushOpts(id = "plot1_brush"))
+ output$plot1 <- renderPlot({
+   #ggplot(mtcars2, aes(wt, mpg)) + geom_point()
+   ggplot(events_df, aes(x=X3, y=X1, color=X1)) + geom_jitter() +labs(x="Time (ms)", y="") + guides(color=FALSE)
+})
+```
+
+### 
+User spent `r format(round(events_df$X3[nrow(events_df)]/1000, 2), nsmall = 2)` seconds on page.
+
+```{r}
+renderTable({
+  selectedData()
+})
+```
+

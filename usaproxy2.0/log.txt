@@ -1,0 +1,2 @@
+130.215.20.172 null httptraffic url=http://koalastothemax.com/nope.php?remove=EasyList adclient=lol sd=15
+130.215.20.172 null httptraffic url=http://koalastothemax.com/nope.php?remove=AntiAdblockKiller x=/aadb/script.js sd=12
